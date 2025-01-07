@@ -5,6 +5,7 @@
 #include <string>
 #include "src/include/gradient_descent.hpp"
 #include "src/include/utils.hpp"
+#include "gemm_kernel.cuh"
 
 using namespace std;
 using namespace xt;

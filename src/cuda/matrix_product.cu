@@ -2,15 +2,23 @@
 #include "src/include/gemm_noblas.h"
 #include "src/include/matrix_utils.h"
 
+#include <cmath>
+#include <iostream>
+#include <string>
+
+#include <cuda.h>
+
 using namespace std;
 
+float* matrix_product_cuda(vector<float> &matrixA, int &rowsA, int &colsA, vector<float> &matrixB, int &rowsB, int &colsB, int& BLOCK_SIZE)
+{
 
-vector<float> matrix_product_cuda(vector<float> &matrixA, int& rowsA, int& colsA, vector<float> &matrixB, int& rowsB, int& colsB) {
-
-    int& WA = colsA;
-    int& HA = rowsA;
-    int& WB = colsB;
-    int& HB = rowsB;
+    int &WA = colsA;
+    int &HA = rowsA;
+    int &WB = colsB;
+    int &HB = rowsB;
+    int &WC = WA;
+    int &HC = HB;
 
     // utilities
     cudaEvent_t start;
@@ -25,8 +33,8 @@ vector<float> matrix_product_cuda(vector<float> &matrixA, int& rowsA, int& colsA
     float *h_B = (float *)malloc(mem_size_B);
 
     // initialize host memory
-    fill_random<REAL>(h_A, WA, HA);
-    fill_random<REAL>(h_B, WB, HB);
+    fill_random<float>(h_A, WA, HA);
+    fill_random<float>(h_B, WB, HB);
 
     // allocate device memory
     float *d_A;
@@ -35,7 +43,7 @@ vector<float> matrix_product_cuda(vector<float> &matrixA, int& rowsA, int& colsA
     cudaMalloc((void **)&d_B, mem_size_B);
 
     // allocate device memory for result
-    unsigned int size_C = WA * HB;
+    unsigned int size_C = HA * WB;
     unsigned int mem_size_C = sizeof(float) * size_C;
     float *d_C;
     cudaMalloc((void **)&d_C, mem_size_C);
@@ -62,5 +70,7 @@ vector<float> matrix_product_cuda(vector<float> &matrixA, int& rowsA, int& colsA
 
     // copy result from device to host
     cudaMemcpy(h_C, d_C, mem_size_C, cudaMemcpyDeviceToHost);
+
+    return h_C;
 
 }
