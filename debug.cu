@@ -1,33 +1,34 @@
 #include "src/cuda/matrix_product.cu"
+#include "src/include/_debug.hpp"
 
 using namespace std;
 #include <typeinfo>
 
+int main()
+{
 
-int main() {
+	int rowsA = 4;
+	int colsA = 4;
+	int rowsB = 4;
+	int colsB = 4;
+	int N = rowsA; // Square matrices
+	int BLOCK_SIZE = 2;
 
-	vector<float> matA = {2, 2, 2, 2};
-	vector<float> matB = {1, 1, 1, 2};
+	float *matA = new float[rowsA * colsA];
+	float *matB = new float[rowsB * colsB];
+	float *matC = new float[rowsA * colsB];
 
-	int rowsA = 2;
-	int colsA = 2;
-	int rowsB = 2;
-	int colsB = 2;
-	int BLOCK_SIZE =1;
-	int N = 2;
-
-    float* matC = matrix_product_cuda(matA, rowsA, colsA, matB, rowsB, colsB, BLOCK_SIZE);
-	cout << matC[0] << endl; // Directly access the first element of the array    
-	
-	// Print result
-    for (int i = 1; i < N+1; i++)
+	// Fill matrices
+	for (int i = 0; i < N; i++)
 	{
-		for (int j = 1; j < N+1; j++)
+		for (int j = 0; j < N; j++)
 		{
-			std::cout<<matC[i+j*N]<< " ";
+			matA[i + j * N] = 1;
+			matB[i + j * N] = 1;
 		}
-		std::cout<<std::endl;
 	}
 
-    return 0;
+	float *_ = matrix_product_cuda(matA, rowsA, colsA, matB, rowsB, colsB, matC, BLOCK_SIZE);
+
+	return 0;
 }

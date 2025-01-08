@@ -24,3 +24,9 @@ gemm_naive(float *C, float *A, float *B, int wA, int wB)
   // each thread writes one element
   C[i * wB + j] = accu;
 }
+
+__global__ void add_matrix(float *a, float *b, float *c) 
+{	
+	int idx = threadIdx.x;
+	c[idx] = a[idx] + b[idx];
+}
