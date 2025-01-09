@@ -7,12 +7,12 @@ using namespace std;
 int main()
 {
 
-	int rowsA = 4;
-	int colsA = 4;
-	int rowsB = 4;
-	int colsB = 4;
+	int rowsA = 16;
+	int colsA = 16;
+	int rowsB = 16;
+	int colsB = 16;
 	int N = rowsA; // Square matrices
-	int BLOCK_SIZE = 2;
+	int BLOCK_SIZE = 4;
 
 	float *matA = new float[rowsA * colsA];
 	float *matB = new float[rowsB * colsB];

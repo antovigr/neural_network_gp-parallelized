@@ -27,6 +27,10 @@ gemm_naive(float *C, float *A, float *B, int wA, int wB)
 
 __global__ void add_matrix(float *a, float *b, float *c) 
 {	
-	int idx = threadIdx.x;
+
+	int idx = blockIdx.y * blockDim.x * gridDim.x * blockDim.y // Get the right row of blocks
+			+ blockIdx.x * blockDim.x // Get the right column of blocks
+			+ threadIdx.x + threadIdx.y * (blockDim.x * gridDim.x); // Get the right thread in the block
+
 	c[idx] = a[idx] + b[idx];
 }
