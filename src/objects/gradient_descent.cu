@@ -6,6 +6,15 @@
 #include "src/include/gradient_descent.hpp"
 #include "src/include/utils.hpp"
 
+// Cuda utils
+#include "src/include/gemm_kernel.cuh"
+// #include "src/include/matrix_utils.h"
+#include <cuda.h>
+#include <typeinfo>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+
+
 using namespace std;
 using namespace xt;
 

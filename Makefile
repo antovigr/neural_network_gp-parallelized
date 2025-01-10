@@ -2,7 +2,7 @@
 NVCC = nvcc       
 
 # Source and target
-SRC = src/main.cpp
+SRC = src/main.cu
 TARGET = build/main
 
 # Included directories
