@@ -23,8 +23,8 @@ int main()
 	{
 		for (int j = 0; j < N; j++)
 		{
-			matA[i + j * N] = 1;
-			matB[i + j * N] = 1;
+			matA[i + j * N] = i;
+			matB[i + j * N] = j;
 		}
 	}
 

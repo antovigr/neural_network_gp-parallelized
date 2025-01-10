@@ -49,7 +49,7 @@ float* matrix_product_cuda(float *matrixA, int &rowsA, int &colsA, float *matrix
     dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid((WC + BLOCK_SIZE - 1) / BLOCK_SIZE, (HC + BLOCK_SIZE - 1) / BLOCK_SIZE);
 
-    gemm_naive<<<grid, threads>>>(d_C, d_A, d_B, WA, WB);
+    add_matrix<<<grid, threads>>>(d_A, d_B, d_C, WA);
     cudaDeviceSynchronize();
 
     cudaMemcpy(matrixC, d_C, mem_size_C, cudaMemcpyDeviceToHost);

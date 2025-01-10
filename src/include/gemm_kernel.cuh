@@ -25,12 +25,20 @@ gemm_naive(float *C, float *A, float *B, int wA, int wB)
   C[i * wB + j] = accu;
 }
 
-__global__ void add_matrix(float *a, float *b, float *c) 
+__global__ void add_matrix(float *a, float *b, float *c, int N) 
 {	
 
-	int idx = blockIdx.y * blockDim.x * gridDim.x * blockDim.y // Get the right row of blocks
-			+ blockIdx.x * blockDim.x // Get the right column of blocks
-			+ threadIdx.x + threadIdx.y * (blockDim.x * gridDim.x); // Get the right thread in the block
+  // Block index
+  int bx = blockIdx.x;
+  int by = blockIdx.y;
 
-	c[idx] = a[idx] + b[idx];
+  // Thread index
+  int tx = threadIdx.x;
+  int ty = threadIdx.y;
+
+  // Accumulate row i of A and column j of B
+  int i = by * blockDim.y + ty;
+  int j = bx * blockDim.x + tx;
+  
+  c[i * N + j] = a[i * N + j] + b[i * N + j];
 }
