@@ -17,7 +17,7 @@ LIBRARIES = "libraries/include"
 CONFIG = "config.json"
 
 # Rule to compile the source into an executable
-build: $(SRC)
+$(TARGET): $(SRC)
 	$(NVCC) -I $(WORKSPACEFOLDER) -I $(LIBRARIES) $(SRC) -o $(TARGET)
 
 # Clean rule to remove compiled files
