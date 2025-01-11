@@ -3,13 +3,13 @@
 
 #include <iostream>
 
-void print_matrix(float* matrix, int N) {
+void print_matrix(float* matrix, int rows, int cols) {
     // Print result
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < rows; i++)
 	{
-		for (int j = 0; j < N; j++)
+		for (int j = 0; j < cols; j++)
 		{
-			std::cout<<matrix[i+j*N]<< " ";
+			std::cout<<matrix[i * cols + j]<< " ";
 		}
 		std::cout<<std::endl;
 	}

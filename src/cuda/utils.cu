@@ -21,7 +21,7 @@ float* cast_xarray(const xarray<float> xarr)
         for (int j = 0; j < cols; j++)
         {
             // Access the element at (i, j) and assign it to x_ptr
-            x_ptr[i + j * rows] = xarr(i, j);  // Direct access to the element
+            x_ptr[i * cols + j] = xarr(i, j);  // Direct access to the element
         }
     }
 

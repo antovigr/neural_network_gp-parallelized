@@ -13,9 +13,6 @@ using namespace std;
 float* matrix_product_cuda(float *matrixA, int &rowsA, int &colsA, float *matrixB, int &rowsB, int &colsB, float *matrixC, int& BLOCK_SIZE)
 {
 
-    print_matrix(matrixA, rowsA);
-    print_matrix(matrixB, rowsB);
-
     int &WA = colsA;
     int &HA = rowsA;
     int &WB = colsB;
@@ -58,7 +55,6 @@ float* matrix_product_cuda(float *matrixA, int &rowsA, int &colsA, float *matrix
     cudaFree(d_B);
     cudaFree(d_C);
 
-    print_matrix(matrixC, rowsA);
 
     return matrixC;
 }
