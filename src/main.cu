@@ -7,6 +7,7 @@
 #include "src/objects/gradient_descent.cu"
 #include "src/objects/autoencoder.cpp"
 #include "src/utils.cpp"
+#include "src/cuda/utils.cu"
 
 using namespace std;
 using namespace xt;

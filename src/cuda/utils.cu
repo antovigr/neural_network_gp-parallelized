@@ -5,7 +5,7 @@
 using namespace std;
 using namespace xt;
 
-float* cast_xarray(const xarray<float> xarr)
+float *cast_xarray(const xarray<float> xarr, bool transpose)
 {
     // Copy the values of an xtensor array into a plain C array of floats
 
@@ -13,7 +13,7 @@ float* cast_xarray(const xarray<float> xarr)
     int cols = xarr.shape(1);
 
     // Allocate memory for the new float array
-    float* x_ptr = new float[rows * cols];
+    float *x_ptr = new float[rows * cols];
 
     // Fill the x_ptr array
     for (int i = 0; i < rows; i++)
@@ -21,7 +21,7 @@ float* cast_xarray(const xarray<float> xarr)
         for (int j = 0; j < cols; j++)
         {
             // Access the element at (i, j) and assign it to x_ptr
-            x_ptr[i * cols + j] = xarr(i, j);  // Direct access to the element
+            x_ptr[i * cols + j] = transpose ? xarr(j, i) : xarr(i, j);
         }
     }
 
