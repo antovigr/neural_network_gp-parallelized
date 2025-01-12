@@ -25,3 +25,14 @@ float *cast_xarray(const xarray<float> xarr, bool transpose)
 
     return x_ptr;
 }
+
+void allocateAndCopyToDevice(float* matrix_ptr, int rows, int cols, float** device_matrix) {
+    // Calculate memory size based on the rows and columns
+    unsigned int mem_size = sizeof(float) * rows * cols;
+
+    // Allocate memory on the GPU
+    cudaMalloc((void**)device_matrix, mem_size);
+
+    // Copy data from host to device
+    cudaMemcpy(*device_matrix, matrix_ptr, mem_size, cudaMemcpyHostToDevice);
+}

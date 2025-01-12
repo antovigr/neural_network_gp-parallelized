@@ -21,5 +21,7 @@ using namespace xt;
  *         The caller is responsible for freeing this memory.
  */
 float* cast_xarray(const xarray<float> xarr, bool transpose);
+void allocateAndCopyToDevice(float* matrix_ptr, int rows, int cols, float** device_matrix);
+
 
 #endif

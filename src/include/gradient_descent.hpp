@@ -40,6 +40,8 @@ private:
     int num_layers;                   // Number of layers in the network
     vector<xarray<double>> layer_outputs;   // Layer outputs (linear activations)
     vector<xarray<double>> layer_activations;   // Layer activations after applying activation function
+    vector<float*> device_layer_outputs;
+    vector<float*> device_layer_activations;
 };
 
 #endif // GRADIENT_DESCENT_HPP

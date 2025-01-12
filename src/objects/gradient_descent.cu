@@ -30,24 +30,34 @@ GradientDescent::GradientDescent(const xarray<double> &x_train, const xarray<dou
     float *x_train_ptr = cast_xarray(x_train, true);
     float *y_train_ptr = cast_xarray(y_train, false);
 
-    int rowsX = x_train.shape(0);
-    int colsX = x_train.shape(1);
-    int rowsY = y_train.shape(0);
-    int colsY = y_train.shape(1);
-
-    unsigned int mem_size_x = sizeof(float) * rowsX * colsX;
-    unsigned int mem_size_y = sizeof(float) * rowsY * colsY;
-
-    float *device_x, *device_y;
-    cudaMalloc((void **)&device_x, mem_size_x);
-    cudaMalloc((void **)&device_y, mem_size_y);
-
-    cudaMemcpy(device_x, x_train_ptr, mem_size_x, cudaMemcpyHostToDevice);
-    cudaMemcpy(device_y, y_train_ptr, mem_size_y, cudaMemcpyHostToDevice);
+    float *device_xtrain;
+    float *device_ytrain;
+    allocateAndCopyToDevice(x_train_ptr, x_train.shape(0), x_train.shape(1), &device_xtrain);
+    allocateAndCopyToDevice(y_train_ptr, y_train.shape(0), y_train.shape(1), &device_ytrain);
     // device_x, y are cuda allocated matrix, x is transposed
 
     delete[] x_train_ptr;
     delete[] y_train_ptr;
+
+    // Allocate and copy each layer's data to the device (they are just initialized at 0 for now)
+    for (size_t i = 0; i < layer_outputs.size(); ++i) {
+        float* layer_output_ptr = cast_xarray(layer_outputs[i], false);
+        float* layer_activation_ptr = cast_xarray(layer_activations[i], false);
+
+        float* device_layer_output;
+        float* device_layer_activation;
+
+        allocateAndCopyToDevice(layer_output_ptr, layer_outputs[i].shape(0), layer_outputs[i].shape(1), &device_layer_output);
+        allocateAndCopyToDevice(layer_activation_ptr, layer_activations[i].shape(0), layer_activations[i].shape(1), &device_layer_activation);
+
+        // Store device pointers
+        device_layer_outputs.push_back(device_layer_output);
+        device_layer_activations.push_back(device_layer_activation);
+
+        // Clean up host memory after copying to device
+        delete[] layer_output_ptr;
+        delete[] layer_activation_ptr;
+    }
 }
 
 
