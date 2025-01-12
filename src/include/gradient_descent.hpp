@@ -46,6 +46,8 @@ private:
     // Declare class member device pointers allocated in the constructor
     float *device_xtrain;
     float *device_ytrain;
+    float *device_xtrainT;
+    float *device_ytrainT;
     vector<float*> device_weights;
     vector<float*> device_biases;
     vector<float*> device_gradient_w;

@@ -34,6 +34,25 @@ GradientDescent::GradientDescent(const xarray<double> &x_train, const xarray<dou
     allocateAndCopyToDevice(y_train_ptr, y_train.shape(0), y_train.shape(1), &device_ytrain);
     // device_xtrain, device_ytrain are cuda allocated matrix, x is not transposed
 
+    // Transpose xtrain and ytrain on device
+    unsigned int mem_size_xtrainT = sizeof(float) * x_train.shape(0) * x_train.shape(1);
+    unsigned int mem_size_ytrainT = sizeof(float) * y_train.shape(0) * y_train.shape(1);
+    cudaMalloc((void**)device_xtrainT, mem_size_xtrainT);
+    cudaMalloc((void**)device_ytrainT, mem_size_ytrainT);
+    int blocksize = 16;
+
+    int width = x_train.shape(0);
+    int height = x_train.shape(1);
+    dim3 threads(blocksize, blocksize);
+    dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+    transposeKernel<<<grid, threads>>>(device_xtrain, device_xtrainT, width, height);
+
+    int width = y_train.shape(0);
+    int height = y_train.shape(1);
+    dim3 threads(blocksize, blocksize);
+    dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+    transposeKernel<<<grid, threads>>>(device_ytrain, device_ytrainT, width, height);
+
     // Cast weights and biases for each layer and allocate memory to device
     for (size_t i = 0; i < num_layers; ++i) {
         // Cast xarrays stored in vectors
@@ -106,6 +125,9 @@ void GradientDescent::backward_pass(const xarray<double> &y_batch, const int &cu
 }
 
 void GradientDescent::train(const unsigned int &epochs, const int &batch_size, const float &learning_rate) {
+
+    train_allocate_device_memory(batch_size); // Work with fixed current_batch_size
+
     int dataset_size = x_train.shape()[0];
     int batch_number = (dataset_size / batch_size);
 
