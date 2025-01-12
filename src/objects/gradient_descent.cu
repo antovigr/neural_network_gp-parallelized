@@ -95,12 +95,12 @@ void GradientDescent::forward_pass(float* device_xbatch_ptr, int &current_batch_
         // layer_output[l]
         // layer_outputs[l] = xt::linalg::dot(weights[l], layer_activations[l]) + biases[l];
         // dot product 
-        int height = weights[l].shape(0); // nb of neurons
-        int width = current_batch_size; // nb of observations
+        height = weights[l].shape(0); // nb of neurons
+        width = current_batch_size; // nb of observations
         int K = l > 0 ? weights[l - 1].shape(0) : x_train.shape(1); // nb of neurons of precedent layer or nb of features
-        int blocksize = 16; 
-        dim3 threads(blocksize, blocksize);
-        dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+        blocksize = 16; 
+        threads = dim3(blocksize, blocksize);
+        grid = dim3((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
         gemmKernel<<<grid, threads>>>(device_weights[l], device_l_a[l], device_l_o[l], height, width, K);
         // add
         addBiasKernel<<<grid, threads>>>(device_l_o[l], device_biases[l], device_l_o[l], height, width);
@@ -126,11 +126,11 @@ void GradientDescent::backward_pass(float* device_ybatch_ptr, const int& current
     // xarray<double> &last_activation = layer_activations[num_layers];
     // deltas[num_layers - 1] = (last_activation - xt::transpose(y_batch)) * sigmoid_derivative(layer_outputs[num_layers - 1]);
     // substract
-    int height = y_train.shape(1); // nb of features
-    int width = current_batch_size; // nb of observations in the batch
-    int blocksize = 16; 
-    dim3 threads(blocksize, blocksize);
-    dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+    height = y_train.shape(1); // nb of features
+    width = current_batch_size; // nb of observations in the batch
+    blocksize = 16; 
+    threads = dim3(blocksize, blocksize);
+    grid = dim3((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
     subtractKernel<<<grid, threads>>>(device_l_a[num_layers], device_ybatchT, device_deltas[num_layers - 1], height, width);
     // apply sigmoid derivative
     sigmoidDerivativeKernel<<<grid, threads>>>(device_l_o[num_layers - 1], device_l_o[num_layers - 1], width * height);
@@ -143,20 +143,20 @@ void GradientDescent::backward_pass(float* device_ybatch_ptr, const int& current
 
         // Perform matrix multiplication: deltas[l] = transpose(weights[l + 1]) * deltas[l + 1]
         // transpose
-        int width = weights[l + 1].shape(1); 
-        int height = weights[l + 1].shape(0);
-        int blocksize = 16;
-        dim3 threads(blocksize, blocksize);
-        dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+        width = weights[l + 1].shape(1); 
+        height = weights[l + 1].shape(0);
+        blocksize = 16;
+        threads= dim3(blocksize, blocksize);
+        grid = dim3((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
         transposeKernel<<<grid, threads>>>(device_weights[l + 1], device_weightsT[l + 1], width, height);
 
         // dot product
-        int height = weights[l + 1].shape(1);
-        int width = current_batch_size; 
+        height = weights[l + 1].shape(1);
+        width = current_batch_size; 
         int K = weights[l + 1].shape(0);
-        int blocksize = 16;
-        dim3 threads(blocksize, blocksize);
-        dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+        blocksize = 16;
+        threads = dim3(blocksize, blocksize);
+        grid = dim3((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
         gemmKernel<<<grid, threads>>>(device_weightsT[l + 1], device_deltas[l + 1], device_deltas[l], height, width, K);
         
         // Apply the sigmoid derivative to the activation of the current layer
@@ -174,11 +174,11 @@ void GradientDescent::backward_pass(float* device_ybatch_ptr, const int& current
         int Acols = current_batch_size;
         int Brows = l > 1 ? weights[l - 1].shape(0) : x_train.shape(1);
         int Bcols = current_batch_size;
-        int height = Arows;
-        int width = Bcols; 
-        int blocksize = 16;
-        dim3 threads(blocksize, blocksize);
-        dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+        height = Arows;
+        width = Bcols; 
+        blocksize = 16;
+        threads = dim3(blocksize, blocksize);
+        grid = dim3((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
         matrixMultiplyTransposeKernel<<<grid, threads>>>(device_deltas[l], device_l_a[l], device_gradient_w[l], Arows, Acols, Brows, Bcols);
         
         // division 
@@ -187,28 +187,28 @@ void GradientDescent::backward_pass(float* device_ybatch_ptr, const int& current
 
         // gradient_b = xt::mean(deltas[l], {1});
         // gradient_b = gradient_b.reshape({gradient_b.size(), 1});
-        int width = Acols;
-        int height = Arows; 
-        int blocksize = 16;
-        dim3 threads(blocksize, blocksize);
-        dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+        width = Acols;
+        height = Arows; 
+        blocksize = 16;
+        threads = dim3(blocksize, blocksize);
+        grid = dim3((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
         matrixMeanRowKernel<<<grid, threads>>>(device_deltas[l], device_gradient_b[l], height, width);
 
         // Update weights: weights[l] -= learning_rate * gradient_w
-        int width = weights[l].shape(1);
-        int height = weights[l].shape(0); 
-        int blocksize = 16;
-        dim3 threads(blocksize, blocksize);
-        dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+        width = weights[l].shape(1);
+        height = weights[l].shape(0); 
+        blocksize = 16;
+        threads = dim3(blocksize, blocksize);
+        grid = dim3((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
         elementWiseMultiplyScalarKernel<<<grid, threads>>>(device_gradient_w[l], learning_rate, device_gradient_w[l], height, width);
         elementWiseSubtractKernel<<<grid, threads>>>(device_weights[l], device_gradient_w[l], device_weights[l], height, width); 
 
         // Update biases: biases[l] -= learning_rate * gradient_b
-        int width = biases[l].shape(1);
-        int height = biases[l].shape(0); 
-        int blocksize = 16;
-        dim3 threads(blocksize, blocksize);
-        dim3 grid((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
+        width = biases[l].shape(1);
+        height = biases[l].shape(0); 
+        blocksize = 16;
+        threads =dim3(blocksize, blocksize);
+        grid =dim3((width + blocksize - 1) / blocksize, (height + blocksize - 1) / blocksize);
         elementWiseMultiplyScalarKernel<<<grid, threads>>>(device_gradient_b[l], learning_rate, device_gradient_b[l], height, width);
         elementWiseSubtractKernel<<<grid, threads>>>(device_biases[l], device_gradient_b[l], device_biases[l], height, width); 
 
