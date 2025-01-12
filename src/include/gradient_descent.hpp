@@ -31,12 +31,12 @@ public:
 
 private:
     // Forward pass through the network
-    void forward_pass(float* device_xbatch_ptr,float *device_xbatch_transpose, int &current_batch_size, int &width);
+    void forward_pass(float* device_xbatch_ptr, int &current_batch_size);
 
     // Backward pass to calculate gradients and update weights/biases
-    void backward_pass(const xarray<double>& y_batch, const int& current_batch_size, const float& learning_rate);
+    void backward_pass(float* device_ybatch_ptr, const int& current_batch_size, const float& learning_rate);
 
-    void train_allocate_device_memory(int &batch_size);
+    void train_allocate_device_memory(const int &batch_size);
 
 
     // Declare class members
@@ -52,9 +52,11 @@ private:
     vector<float*> device_biases;
     vector<float*> device_gradient_w;
     vector<float*> device_gradient_b;
+    vector<float*> device_weightsT;
+    vector<float*> device_biasesT;
 
     // Declare class member device pointers allocated in the train method (dependent on the batch size)
-    float *device_xbatch;
+    float *device_ybatchT;
     vector<float*> device_l_o; // l_o stands for layer_outputs
     vector<float*> device_l_a; // l_a stands for layer_activations
     vector<float*> device_deltas;
