@@ -6,9 +6,7 @@ using namespace std;
 using namespace xt;
 
 float *cast_xarray(const xarray<float> xarr, bool transpose)
-{
-    // Copy the values of an xtensor array into a plain C array of floats
-
+{   
     int rows = xarr.shape(0);
     int cols = xarr.shape(1);
 
