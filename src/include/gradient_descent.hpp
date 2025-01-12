@@ -42,6 +42,8 @@ private:
     vector<xarray<double>> layer_activations;   // Layer activations after applying activation function
     vector<float*> device_layer_outputs;
     vector<float*> device_layer_activations;
+    float *device_xtrain;
+    float *device_ytrain;
 };
 
 #endif // GRADIENT_DESCENT_HPP

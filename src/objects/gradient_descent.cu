@@ -27,14 +27,12 @@ GradientDescent::GradientDescent(const xarray<double> &x_train, const xarray<dou
     layer_activations.resize(num_layers + 1);
 
     // Prepare data for cuda
-    float *x_train_ptr = cast_xarray(x_train, true);
+    float *x_train_ptr = cast_xarray(x_train, false);
     float *y_train_ptr = cast_xarray(y_train, false);
 
-    float *device_xtrain;
-    float *device_ytrain;
     allocateAndCopyToDevice(x_train_ptr, x_train.shape(0), x_train.shape(1), &device_xtrain);
     allocateAndCopyToDevice(y_train_ptr, y_train.shape(0), y_train.shape(1), &device_ytrain);
-    // device_x, y are cuda allocated matrix, x is transposed
+    // device_x, y are cuda allocated matrix, x is not transposed
 
     delete[] x_train_ptr;
     delete[] y_train_ptr;
@@ -115,6 +113,10 @@ void GradientDescent::train(const unsigned int &epochs, const int &batch_size, c
             int current_batch_size = std::min(batch_size, dataset_size - batch_start);
             xarray<double> x_batch = xt::view(x_train, range(batch_start, batch_start + current_batch_size), all());
             xarray<double> y_batch = xt::view(y_train, range(batch_start, batch_start + current_batch_size), all());
+            // Create device sub array for the batch by using pointer arithmetic
+            int batch_idx_start = batch_start * x_train.shape(1); // Multiply by the columns number for getting the right index of row
+            float *device_xbatch_ptr = device_xtrain + batch_idx_start;
+            // int batch_idx_stop = batch_idx_start + current_batch_size * x_train.shape(1); // Add the right number of rows
 
             // Perform the forward pass
             forward_pass(x_batch); // Modify the layer_activations and layer_outputs
