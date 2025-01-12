@@ -23,40 +23,55 @@ using namespace xt;
 // Define constructor
 // Just init class members
 GradientDescent::GradientDescent(const xarray<double> &x_train, const xarray<double> &y_train, vector<xarray<double>> &weights, vector<xarray<double>> &biases) : x_train(x_train), y_train(y_train), weights(weights), biases(biases) {
+    // Compute the number of layers
     num_layers = weights.size(); 
-    layer_outputs.resize(num_layers);
-    layer_activations.resize(num_layers + 1);
+    // Size the vectors of pointers for the device according to the number of layers
+    device_weights.resize(num_layers);
+    device_biases.resize(num_layers);
+    device_l_o.resize(num_layers);
+    device_l_a.resize(num_layers + 1); // TODO: move this part into the train initializer
 
-    // Prepare data for cuda
+    // Allocate device memory
     float *x_train_ptr = cast_xarray(x_train, false);
     float *y_train_ptr = cast_xarray(y_train, false);
 
     allocateAndCopyToDevice(x_train_ptr, x_train.shape(0), x_train.shape(1), &device_xtrain);
     allocateAndCopyToDevice(y_train_ptr, y_train.shape(0), y_train.shape(1), &device_ytrain);
-    // device_x, y are cuda allocated matrix, x is not transposed
+    // device_xtrain, device_ytrain are cuda allocated matrix, x is not transposed
 
-    delete[] x_train_ptr;
-    delete[] y_train_ptr;
+    // Cast weights and biases for each layer and allocate memory to device
+    for (size_t i = 0; i < num_layers; ++i) {
+        // Cast xarrays stored in vectors
+        float* w_i = cast_xarray(weights[i], false);
+        float* b_i = cast_xarray(biases[i], false);
 
-    // Allocate and copy each layer's data to the device (they are just initialized at 0 for now)
-    for (size_t i = 0; i < layer_outputs.size(); ++i) {
-        float* layer_output_ptr = cast_xarray(layer_outputs[i], false);
-        float* layer_activation_ptr = cast_xarray(layer_activations[i], false);
+        // Create device pointer
+        float* d_w_i; // Weights
+        float* d_b_i;
+        float* d_g_w_i; // Gradient of weights
+        float* d_g_b_i;
 
-        float* device_layer_output;
-        float* device_layer_activation;
+        // Allocate memory
+        allocateAndCopyToDevice(w_i, weights[i].shape(0), weights[i].shape(1), &d_w_i);
+        allocateAndCopyToDevice(b_i, biases[i].shape(0), biases[i].shape(1), &d_b_i);
+        // Allocate memory without copying
+        unsigned int d_g_w_i_size = sizeof(float) * weights[i].shape(0) * weights[i].shape(1);
+        unsigned int d_g_b_i_size = sizeof(float) * biases[i].shape(0) * biases[i].shape(1);
+        cudaMalloc((void**)d_g_w_i, d_g_w_i_size);
+        cudaMalloc((void**)d_g_b_i, d_g_b_i_size);
 
-        allocateAndCopyToDevice(layer_output_ptr, layer_outputs[i].shape(0), layer_outputs[i].shape(1), &device_layer_output);
-        allocateAndCopyToDevice(layer_activation_ptr, layer_activations[i].shape(0), layer_activations[i].shape(1), &device_layer_activation);
-
-        // Store device pointers
-        device_layer_outputs.push_back(device_layer_output);
-        device_layer_activations.push_back(device_layer_activation);
+        // Store device pointers into vectors
+        device_weights.push_back(d_w_i);
+        device_biases.push_back(d_b_i);
+        device_gradient_w.push_back(d_g_w_i);
+        device_gradient_b.push_back(d_g_b_i);
 
         // Clean up host memory after copying to device
-        delete[] layer_output_ptr;
-        delete[] layer_activation_ptr;
+        delete[] w_i;
+        delete[] b_i;
     }
+    delete[] x_train_ptr;
+    delete[] y_train_ptr;
 }
 
 
