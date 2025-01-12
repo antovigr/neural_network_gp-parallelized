@@ -8,6 +8,6 @@
 using namespace std;
 using namespace xt;
 
-float* cast_xarray(const xarray<float> xarr);
+float* cast_xarray(const xarray<float> xarr, bool transpose);
 
 #endif
