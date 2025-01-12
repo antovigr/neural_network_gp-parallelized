@@ -36,14 +36,26 @@ private:
     // Backward pass to calculate gradients and update weights/biases
     void backward_pass(const xarray<double>& y_batch, const int& current_batch_size, const float& learning_rate);
 
-    // Class members for layer outputs and activations
-    int num_layers;                   // Number of layers in the network
-    vector<xarray<double>> layer_outputs;   // Layer outputs (linear activations)
-    vector<xarray<double>> layer_activations;   // Layer activations after applying activation function
-    vector<float*> device_layer_outputs;
-    vector<float*> device_layer_activations;
+    void train_allocate_device_memory(int &batch_size);
+
+
+    // Declare class members
+
+    int num_layers;
+    
+    // Declare class member device pointers allocated in the constructor
     float *device_xtrain;
     float *device_ytrain;
+    vector<float*> device_weights;
+    vector<float*> device_biases;
+    vector<float*> device_gradient_w;
+    vector<float*> device_gradient_b;
+
+    // Declare class member device pointers allocated in the train method (dependent on the batch size)
+    float *device_xbatch;
+    vector<float*> device_l_o; // l_o stands for layer_outputs
+    vector<float*> device_l_a; // l_a stands for layer_activations
+    vector<float*> device_deltas;
 };
 
 #endif // GRADIENT_DESCENT_HPP
