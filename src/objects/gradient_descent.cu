@@ -8,7 +8,8 @@
 
 // Cuda utils
 #include "src/include/gemm_kernel.cuh"
-// #include "src/include/matrix_utils.h"
+#include "src/include/matrix_utils.h"
+#include "src/include/utils.cuh"
 #include <cuda.h>
 #include <typeinfo>
 #include <cuda_runtime.h>
@@ -24,6 +25,29 @@ GradientDescent::GradientDescent(const xarray<double> &x_train, const xarray<dou
     num_layers = weights.size(); 
     layer_outputs.resize(num_layers);
     layer_activations.resize(num_layers + 1);
+
+    // Prepare data for cuda
+    float *x_train_ptr = cast_xarray(x_train, true);
+    float *y_train_ptr = cast_xarray(y_train, false);
+
+    int rowsX = x_train.shape(0);
+    int colsX = x_train.shape(1);
+    int rowsY = y_train.shape(0);
+    int colsY = y_train.shape(1);
+
+    unsigned int mem_size_x = sizeof(float) * rowsX * colsX;
+    unsigned int mem_size_y = sizeof(float) * rowsY * colsY;
+
+    float *device_x, *device_y;
+    cudaMalloc((void **)&device_x, mem_size_x);
+    cudaMalloc((void **)&device_y, mem_size_y);
+
+    cudaMemcpy(device_x, x_train_ptr, mem_size_x, cudaMemcpyHostToDevice);
+    cudaMemcpy(device_y, y_train_ptr, mem_size_y, cudaMemcpyHostToDevice);
+    // device_x, y are cuda allocated matrix, x is transposed
+
+    delete[] x_train_ptr;
+    delete[] y_train_ptr;
 }
 
 
