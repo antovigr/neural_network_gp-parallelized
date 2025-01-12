@@ -10,6 +10,7 @@
 #include "src/include/gemm_kernel.cuh"
 #include "src/include/matrix_utils.h"
 #include "src/include/utils.cuh"
+#include "src/include/linear_algebra.cuh"
 #include <cuda.h>
 #include <typeinfo>
 #include <cuda_runtime.h>
@@ -61,9 +62,9 @@ GradientDescent::GradientDescent(const xarray<double> &x_train, const xarray<dou
 
 // Write gradient descent methods
 
-void GradientDescent::forward_pass(const xarray<double> &x_batch) {
+void GradientDescent::forward_pass(float* device_xbatch_ptr, float *device_xbatch_transpose, int &current_batch_size, int &width) {
 
-    layer_activations[0] = xt::transpose(x_batch);
+    transposeKernel(device_xbatch_ptr, device_xbatch_transpose, width, current_batch_size);
 
     for (size_t l = 0; l < num_layers; l++) {
         layer_outputs[l] = xt::linalg::dot(weights[l], layer_activations[l]) + biases[l];
@@ -98,6 +99,12 @@ void GradientDescent::train(const unsigned int &epochs, const int &batch_size, c
     int dataset_size = x_train.shape()[0];
     int batch_number = (dataset_size / batch_size);
 
+    // Allocate device memory for storing transposed x_batch matrix
+    // TODO: remove this step by directly casting transposed matrix in constructor
+    float *device_xbatch_transpose;
+    unsigned int device_mem_size = sizeof(float) * batch_size * x_train.shape(1); // Number of observations * number of features
+    cudaMalloc((void**)device_xbatch_transpose, device_mem_size);
+    
     for (unsigned int epoch = 0; epoch < epochs; epoch++) {
 
         cout << "Epoch: " << epoch << endl;
@@ -119,7 +126,10 @@ void GradientDescent::train(const unsigned int &epochs, const int &batch_size, c
             // int batch_idx_stop = batch_idx_start + current_batch_size * x_train.shape(1); // Add the right number of rows
 
             // Perform the forward pass
-            forward_pass(x_batch); // Modify the layer_activations and layer_outputs
+            // Specify width of the xbatch matrix for the transposition
+            int xbatch_width = x_train.shape(1); // i.e. the number of features
+            // TODO: make a DeviceMatrix class for cleaning this process
+            forward_pass(device_xbatch_ptr, device_xbatch_transpose, current_batch_size, xbatch_width); // Modify the layer_activations and layer_outputs
             xarray<double> &last_activation = layer_activations[num_layers];
 
             // Perform the backward pass

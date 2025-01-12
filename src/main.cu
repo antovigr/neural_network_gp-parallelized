@@ -8,6 +8,7 @@
 #include "src/objects/autoencoder.cpp"
 #include "src/utils.cpp"
 #include "src/cuda/utils.cu"
+#include "src/cuda/linear_algrebra.cu"
 
 using namespace std;
 using namespace xt;

@@ -31,7 +31,7 @@ public:
 
 private:
     // Forward pass through the network
-    void forward_pass(const xarray<double>& x_batch);
+    void forward_pass(float* device_xbatch_ptr,float *device_xbatch_transpose, int &current_batch_size, int &width);
 
     // Backward pass to calculate gradients and update weights/biases
     void backward_pass(const xarray<double>& y_batch, const int& current_batch_size, const float& learning_rate);
