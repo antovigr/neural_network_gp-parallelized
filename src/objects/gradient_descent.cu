@@ -25,11 +25,6 @@ using namespace xt;
 GradientDescent::GradientDescent(const xarray<double> &x_train, const xarray<double> &y_train, vector<xarray<double>> &weights, vector<xarray<double>> &biases) : x_train(x_train), y_train(y_train), weights(weights), biases(biases) {
     // Compute the number of layers
     num_layers = weights.size(); 
-    // Size the vectors of pointers for the device according to the number of layers
-    device_weights.resize(num_layers);
-    device_biases.resize(num_layers);
-    device_l_o.resize(num_layers);
-    device_l_a.resize(num_layers + 1); // TODO: move this part into the train initializer
 
     // Allocate device memory
     float *x_train_ptr = cast_xarray(x_train, false);
@@ -158,5 +153,54 @@ void GradientDescent::train(const unsigned int &epochs, const int &batch_size, c
         cout << "   MSE: " << epoch_mse << endl;
         loss_history.push_back(epoch_mse);
     }
+}
+
+void GradientDescent::train_allocate_device_memory(int &batch_size) {
+    // Declare the fixed size of the vectors
+    device_l_o.resize(num_layers);
+    device_l_a.resize(num_layers + 1);
+    device_deltas.resize(num_layers);
+
+    // Allocate memory iteratively without copying
+        
+    // Allocate activations[0]
+    unsigned int mem_size_l_a = sizeof(float) * x_train.shape(1) * batch_size; // number of features (pixels) * batch_size
+    cudaMalloc((void**)device_l_a[0], mem_size_l_a);
+    
+    for (size_t i = 0; i < num_layers; ++i) {
+
+        // Create device pointer
+        float* d_l_o; 
+        float* d_l_a;
+
+        // Allocate memory without copying
+        unsigned int mem_size_l_o = sizeof(float) * weights[i].shape(0) * batch_size;
+        unsigned int &mem_size_l_a = mem_size_l_o;
+
+        cudaMalloc((void**)d_l_o, mem_size_l_o);
+        cudaMalloc((void**)d_l_a, mem_size_l_a);
+
+        // Store device pointers into vectors
+        device_l_o[i] = d_l_o;
+        device_l_a[i + 1] = d_l_a;
+   
+    }
+
+    // Allocate memory for deltas going backward
+    unsigned int mem_size_delta = sizeof(float) * weights[num_layers - 1].shape(0) * batch_size;
+    cudaMalloc((void**)device_deltas[num_layers - 1], mem_size_delta);    
+
+    for (int l = num_layers - 2; l >= 0; l--) {
+        // deltas[l] = xt::linalg::dot(xt::transpose(weights[l + 1]), deltas[l + 1]) * sigmoid_derivative(layer_outputs[l]);
+        
+        float* d_delta;
+        
+        unsigned int mem_size_delta = sizeof(float) * weights[l + 1].shape(1) * batch_size;
+
+        cudaMalloc((void**)d_delta, mem_size_delta);
+
+        device_deltas[l] = d_delta;
+    }
+
 }
 
