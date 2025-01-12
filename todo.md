@@ -1,6 +1,8 @@
 - [x] Rename sigma function sigmoid
 - [x] Clean useless #include
-- [ ] Write good headers (hpp)
+- [x] Write good headers (hpp)
 - [ ] Install code formater
 - [ ] Install libraries sorting tool
 - [ ] Check memory leaks
+- [ ] Define .fit() method into Model and overcharge Autoencoder with a new fit definition
+- [ ] Ask teacher if I can use cuda linear algebra library
