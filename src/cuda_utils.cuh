@@ -23,6 +23,7 @@ public:
 
     // Method
     void sendMatrix2Device(const float *carray);
+    float* allocAndSend2Host();
     
 private:
 };
